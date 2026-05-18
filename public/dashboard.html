@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+   <link rel="stylesheet" href="styles.css">
+
+<div class="dashboard">
+
+    <div class="sidebar">
+        <h2>CyberSafe</h2>
+        <ul>
+            <li>Dashboard</li>
+            <li>Threats</li>
+            <li>Network</li>
+            <li>Incidents</li>
+            <li>Analysis</li>
+            <li onclick="logout()">Logout</li>
+        </ul>
+    </div>
+
+    <div class="main">
+
+        <h1>Security Dashboard</h1>
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Session Duration</h3>
+                <p id="sessionDuration">0s</p>
+            </div>
+
+            <div class="card">
+                <h3>Login Attempts</h3>
+                <p id="loginCount">--</p>
+            </div>
+
+            <div class="card">
+                <h3>Threat Level</h3>
+                <p>Low</p>
+            </div>
+
+        </div>
+
+        <div class="history-card">
+
+            <h2>Login History</h2>
+            <ul id="loginHistory"></ul>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    const token = localStorage.getItem("token");
+
+    if (!token){
+        window.location.href = "index.html";
+    }
+    async function loadProfile() {
+        const response = await fetch("http://localhost:3000/profile", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+    
+
+       if (response.ok) {
+        const data = await response .json();
+        document.getElementById("email").innerText = data.email;
+        document.getElementById("status").innerText = "Active Session";
+        document.getElementById("loginTime").innerText = data.loginTime;
+       }else{
+        document.getElementById("status").innerText = "Session Invalid";
+       }
+
+    }
+function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+}
+loadProfile();
+
+function startSessionTimer(){
+    const loginStart = localStorage.getItem("loginStart");
+
+    if (! loginStart) return;
+
+    setInterval(() => {
+        const now = Date.now();
+        const diff = now - loginStart;
+
+        const seconds = Math.floor(diff / 1000) % 60;
+        const minutes = Math.floor(diff / 60000) % 60;
+        const hours = Math.floor(diff / 3600000);
+        
+        document.getElementById("sessionDuration").innerText =
+        `${hours}h ${minutes}m ${seconds}s`;
+    }, 1000);
+}
+
+startSessionTimer();
+
+async function loadLoginHistory() {
+    const response = await fetch("http://localhost:3000/login-history", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        const list = document.getElementById("loginHistory");
+        list.innerHTML = "";
+
+        data.forEach(log => {
+            const li = document.createElement("li");
+         const status = log.success === 1 ? "Success" : "Faild";
+         li.innerText =
+         "email: "  + log.email +
+         " | Status: " + status +
+         " | Time: " + new Date(log.login_time).toLocaleString();
+            list.appendChild(li);
+        });
+
+    }
+}
+
+loadLoginHistory();
+
+</script>
+
+</body>
+</html>
