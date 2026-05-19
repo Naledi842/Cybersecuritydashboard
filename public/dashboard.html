@@ -106,7 +106,7 @@ function startSessionTimer(){
 startSessionTimer();
 
 async function loadLoginHistory() {
-    const response = await fetch("http://localhost:3000/login-history", {
+    const response = await fetch("/login-history", {
         headers: {
             "Authorization": "Bearer " + token
         }

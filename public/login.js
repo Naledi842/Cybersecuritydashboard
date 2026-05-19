@@ -2,7 +2,7 @@ async function login() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    const response = await fetch("http://localhost:3000/api/login", {
+    const response = await fetch("/api/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
