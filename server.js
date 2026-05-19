@@ -73,34 +73,38 @@ app.post("/register", async (req, res) => {
 app.post("/api/login", (req, res) => {
     const { email, password } = req.body;
 
-    if (email === "admin@example.com" && password === "admin123") {
-
-        db.run(
-            "INSERT INTO login_logs (email, success, login_time) VALUES (?, ?, ?)",
-            [email, 1, new Date().toISOString()]
-        );
-
-        const token = jwt.sign(
-            { email },
-            JWT_SECRET,
-            { expiresIn: "1h" }
-        );
-
-        return res.json({
-            success: true,
-            token
-        });
-    }
+    const success =
+        email === "admin@example.com" &&
+        password === "admin123";
 
     db.run(
         "INSERT INTO login_logs (email, success, login_time) VALUES (?, ?, ?)",
-        [email, 0, new Date().toISOString()]
-    );
+        [email, success ? 1 : 0, new Date().toISOString()],
+        function(err) {
 
-    res.status(400).json({
-        success: false,
-        message: "Invalid login"
-    });
+            if (err) {
+                console.log("Login log error:", err.message);
+            }
+
+            if (success) {
+                const token = jwt.sign(
+                    { email },
+                    JWT_SECRET,
+                    { expiresIn: "1h" }
+                );
+
+                return res.json({
+                    success: true,
+                    token
+                });
+            }
+
+            res.status(400).json({
+                success: false,
+                message: "Invalid login"
+            });
+        }
+    );
 });
 
 
