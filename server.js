@@ -74,6 +74,12 @@ app.post("/api/login", (req, res) => {
     const { email, password } = req.body;
 
     if (email === "admin@example.com" && password === "admin123") {
+
+        db.run(
+            "INSERT INTO login_logs (email, success, login_time) VALUES (?, ?, ?)",
+            [email, 1, new Date().toISOString()]
+        );
+
         const token = jwt.sign(
             { email },
             JWT_SECRET,
@@ -86,11 +92,18 @@ app.post("/api/login", (req, res) => {
         });
     }
 
+    db.run(
+        "INSERT INTO login_logs (email, success, login_time) VALUES (?, ?, ?)",
+        [email, 0, new Date().toISOString()]
+    );
+
     res.status(400).json({
         success: false,
         message: "Invalid login"
     });
 });
+
+
 
 
 app.get("/dashboard", authenticateToken, (req, res) => {
